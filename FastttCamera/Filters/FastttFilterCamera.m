@@ -27,33 +27,37 @@
 @property (nonatomic, strong) GPUImageView *previewView;
 @property (nonatomic, assign) BOOL deviceAuthorized;
 @property (nonatomic, assign) BOOL isCapturingImage;
+@property (nonatomic, copy) NSString *sessionPreset;
 
 @end
 
 @implementation FastttFilterCamera
 
 @synthesize delegate = _delegate,
-            returnsRotatedPreview = _returnsRotatedPreview,
-            showsFocusView = _showsFocusView,
-            maxScaledDimension = _maxScaledDimension,
-            normalizesImageOrientations = _normalizesImageOrientations,
-            cropsImageToVisibleAspectRatio = _cropsImageToVisibleAspectRatio,
-            interfaceRotatesWithOrientation = _interfaceRotatesWithOrientation,
-            fixedInterfaceOrientation = _fixedInterfaceOrientation,
-            handlesTapFocus = _handlesTapFocus,
-            handlesZoom = _handlesZoom,
-            maxZoomFactor = _maxZoomFactor,
-            showsZoomView = _showsZoomView,
-            gestureView = _gestureView,
-            gestureDelegate = _gestureDelegate,
-            scalesImage = _scalesImage,
-            cameraDevice = _cameraDevice,
-            cameraFlashMode = _cameraFlashMode,
-            cameraTorchMode = _cameraTorchMode;
+returnsRotatedPreview = _returnsRotatedPreview,
+showsFocusView = _showsFocusView,
+maxScaledDimension = _maxScaledDimension,
+normalizesImageOrientations = _normalizesImageOrientations,
+cropsImageToVisibleAspectRatio = _cropsImageToVisibleAspectRatio,
+interfaceRotatesWithOrientation = _interfaceRotatesWithOrientation,
+fixedInterfaceOrientation = _fixedInterfaceOrientation,
+handlesTapFocus = _handlesTapFocus,
+handlesZoom = _handlesZoom,
+maxZoomFactor = _maxZoomFactor,
+showsZoomView = _showsZoomView,
+gestureView = _gestureView,
+gestureDelegate = _gestureDelegate,
+scalesImage = _scalesImage,
+cameraDevice = _cameraDevice,
+cameraFlashMode = _cameraFlashMode,
+cameraTorchMode = _cameraTorchMode;
 
-- (instancetype)init
+- (instancetype)initWithSessionPreset:(NSString *)sessionPreset
 {
-    if ((self = [super init])) {
+    self = [super init];
+    if (self) {
+        
+        _sessionPreset = sessionPreset;
         
         [self _setupCaptureSession];
         
@@ -93,8 +97,12 @@
                                                      name:UIApplicationDidEnterBackgroundNotification
                                                    object:nil];
     }
-    
     return self;
+}
+
+- (instancetype)init
+{
+    return [self initWithSessionPreset:AVCaptureSessionPresetPhoto];
 }
 
 + (instancetype)cameraWithFilterImage:(UIImage *)filterImage
@@ -111,7 +119,7 @@
     _fastFocus = nil;
     _fastFilter = nil;
     _fastZoom = nil;
-
+    
     [self _teardownCaptureSession];
     
     [[NSNotificationCenter defaultCenter] removeObserver:self];
@@ -332,7 +340,7 @@
         [device setCameraFlashMode:cameraFlashMode];
         return;
     }
-
+    
     _cameraFlashMode = FastttCameraFlashModeOff;
 }
 
@@ -440,7 +448,7 @@
         if (_deviceAuthorized) {
             
             dispatch_async(dispatch_get_main_queue(), ^{
-    
+                
                 if (_stillCamera) {
                     return;
                 }
@@ -453,7 +461,7 @@
                 
                 AVCaptureDevicePosition position = [device position];
                 
-                _stillCamera = [[GPUImageStillCamera alloc] initWithSessionPreset:AVCaptureSessionPresetPhoto cameraPosition:position];
+                _stillCamera = [[GPUImageStillCamera alloc] initWithSessionPreset:self.sessionPreset cameraPosition:position];
                 _stillCamera.outputImageOrientation = UIInterfaceOrientationPortrait;
                 _stillCamera.horizontallyMirrorFrontFacingCamera = YES;
                 
@@ -473,7 +481,7 @@
                 [self setCameraFlashMode:_cameraFlashMode];
                 
                 _deviceOrientation = [IFTTTDeviceOrientation new];
-               
+                
                 if (self.isViewLoaded && self.view.window) {
                     [self _insertPreviewLayer];
                     [self startRunning];
@@ -522,9 +530,9 @@
 #else
     
     UIDeviceOrientation previewOrientation = [self _currentPreviewDeviceOrientation];
-
+    
     UIImageOrientation outputImageOrientation = [self _outputImageOrientation];
-
+    
     [_stillCamera capturePhotoAsImageProcessedUpToFilter:self.fastFilter.filter withOrientation:UIImageOrientationUp withCompletionHandler:^(UIImage *processedImage, NSError *error){
         
         if (self.isCapturingImage) {
@@ -560,7 +568,7 @@
         }
         
         UIImage *fixedOrientationImage = [image fastttRotatedImageMatchingOrientation:imageOrientation];
-
+        
         FastttCapturedImage *capturedImage = [FastttCapturedImage fastttCapturedFullImage:fixedOrientationImage];
         
         [capturedImage cropToRect:cropRect

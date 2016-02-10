@@ -20,9 +20,11 @@
  */
 @interface FastttFilterCamera : UIViewController <FastttCameraInterface>
 
+- (instancetype)initWithSessionPreset:(NSString *)sessionPreset;
+
 /**
- *  The current lookup image for filtering both the camera's live preview and the captured image, 
- *  which should be created from 512 x 512 png lookup image found in FiltersExample/Resources, 
+ *  The current lookup image for filtering both the camera's live preview and the captured image,
+ *  which should be created from 512 x 512 png lookup image found in FiltersExample/Resources,
  *  as shown in the example app.
  *
  *  @note You can edit the lookup image found in FiltersExample/Resources using your favorite
@@ -44,7 +46,7 @@
  *  Setting this to nil will return a plain, unfiltered camera.
  *
  *  @note If you want to apply changeable filters to your photos only after they have been captured, and not to the
- *  camera's live preview and captured images, use FastttCamera instead for slightly faster camera performance, 
+ *  camera's live preview and captured images, use FastttCamera instead for slightly faster camera performance,
  *  and use the methods in UIImage+FastttFilters to apply filters to your captured UIImages.
  *
  *  @return An instance of FastttFilterCamera.
